@@ -1,0 +1,65 @@
+============================================================
+Projeto 3 — Inferência com model.tflite (Edge AI)
+============================================================
+
+Rodando inferência em 5 amostras usando model.tflite:
+
+Imagem                               Detecções  Detalhes
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/ultralytics/nn/autobackend.py", line 445, in __init__
+    from tflite_runtime.interpreter import Interpreter, load_delegate
+ModuleNotFoundError: No module named 'tflite_runtime'
+
+During handling of the above exception, another exception occurred:
+
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/ultralytics/nn/autobackend.py", line 445, in __init__
+    from tflite_runtime.interpreter import Interpreter, load_delegate
+ModuleNotFoundError: No module named 'tflite_runtime'
+
+During handling of the above exception, another exception occurred:
+
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/ultralytics/nn/autobackend.py", line 445, in __init__
+    from tflite_runtime.interpreter import Interpreter, load_delegate
+ModuleNotFoundError: No module named 'tflite_runtime'
+
+During handling of the above exception, another exception occurred:
+
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/ultralytics/nn/autobackend.py", line 445, in __init__
+    from tflite_runtime.interpreter import Interpreter, load_delegate
+ModuleNotFoundError: No module named 'tflite_runtime'
+
+During handling of the above exception, another exception occurred:
+
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/ultralytics/nn/autobackend.py", line 445, in __init__
+    from tflite_runtime.interpreter import Interpreter, load_delegate
+ModuleNotFoundError: No module named 'tflite_runtime'
+
+During handling of the above exception, another exception occurred:
+
+AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+Loading /workspace/processoseletivoIA/projetos/3-deteccao-mascaras/model.tflite for TensorFlow Lite inference...
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
+maksssksksss105.jpg                          8  [8x with_mask]
+Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
+maksssksksss107.jpg                          0  [nenhuma detecção]
+Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
+maksssksksss11.jpg                          24  [23x with_mask, 1x mask_weared_incorrect]
+Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
+maksssksksss113.jpg                          4  [3x with_mask, 1x without_mask]
+Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
+maksssksksss12.jpg                          10  [9x with_mask, 1x without_mask]
+----------------------------------------------------------------------
+TOTAL                                       46
+
+✅ Imagens anotadas salvas em: runs/detect/inferencia_exemplos/predicoes/
+   (Abra essa pasta para verificar visualmente as bounding boxes preditas)

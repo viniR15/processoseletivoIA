@@ -1,29 +1,33 @@
 import shutil
-
+from pathlib import Path
 from ultralytics import YOLO
 
-# ---------------------------------------------------------------------------
-# Projeto 3 — Detecção de Máscaras Faciais (Fine-tuning do YOLO11n)
-#
-# Requisitos (veja README.md desta pasta para detalhes completos):
-#   1. Carregar o modelo pré-treinado YOLO11n: YOLO("yolo11n.pt")
-#      (única exceção à regra de "sem modelos pré-treinados" do processo seletivo)
-#   2. Fazer fine-tuning em dataset/data.yaml, em CPU (device="cpu"),
-#      com um número de épocas modesto (ex: 15-30)
-#   3. Copiar os pesos resultantes (results.save_dir / "weights" / "best.pt")
-#      para "model.pt", na raiz desta pasta
-# ---------------------------------------------------------------------------
+SCRIPT_DIR = Path(__file__).resolve().parent
+DATA_YAML = SCRIPT_DIR / "dataset" / "data.yaml"
+OUTPUT_MODEL = SCRIPT_DIR / "model.pt"
 
-# insira seu código aqui
+EPOCHS = 20
+IMGSZ = 416
+BATCH = 16
 
-# Dica de estrutura (não é obrigatório seguir exatamente assim):
-#
-# model = YOLO("yolo11n.pt")
-# results = model.train(
-#     data="dataset/data.yaml",
-#     epochs=...,
-#     imgsz=...,
-#     batch=...,
-#     device="cpu",
-# )
-# shutil.copy(results.save_dir / "weights" / "best.pt", "model.pt")
+def main():
+    model = YOLO("yolo11n.pt")
+
+    results = model.train(
+        data=str(DATA_YAML),
+        epochs=EPOCHS,
+        imgsz=IMGSZ,
+        batch=BATCH,
+        device="cpu",
+        project=str(SCRIPT_DIR / "runs" / "detect"),
+        name="train",
+        exist_ok=True,
+    )
+
+    best_weights = Path(results.save_dir) / "weights" / "best.pt"
+    shutil.copy(best_weights, OUTPUT_MODEL)
+    print(f"\nPesos copiados para: {OUTPUT_MODEL}")
+
+
+if __name__ == "__main__":
+    main()
