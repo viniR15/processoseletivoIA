@@ -8,7 +8,7 @@ MODEL_PATH = SCRIPT_DIR / "model.pt"
 DATA_YAML = SCRIPT_DIR / "dataset" / "data.yaml"
 OUTPUT_TFLITE = SCRIPT_DIR / "model.tflite"
 
-IMGSZ = 416
+IMGSZ = 640
 
 def size_mb(path):
     return os.path.getsize(path) / (1024 * 1024)

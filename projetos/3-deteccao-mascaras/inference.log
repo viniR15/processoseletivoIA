@@ -49,17 +49,16 @@ AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
 Loading /workspace/processoseletivoIA/projetos/3-deteccao-mascaras/model.tflite for TensorFlow Lite inference...
 INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss105.jpg                          8  [8x with_mask]
+maksssksksss105.jpg                          6  [6x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
 maksssksksss107.jpg                          0  [nenhuma detecção]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss11.jpg                          24  [23x with_mask, 1x mask_weared_incorrect]
+maksssksksss11.jpg                          19  [19x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss113.jpg                          4  [3x with_mask, 1x without_mask]
+maksssksksss113.jpg                          4  [4x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss12.jpg                          10  [9x with_mask, 1x without_mask]
+maksssksksss12.jpg                          12  [11x with_mask, 1x without_mask]
 ----------------------------------------------------------------------
-TOTAL                                       46
+TOTAL                                       41
 
-✅ Imagens anotadas salvas em: runs/detect/inferencia_exemplos/predicoes/
-   (Abra essa pasta para verificar visualmente as bounding boxes preditas)
+Imagens anotadas salvas em: runs/detect/inferencia_exemplos/predicoes/

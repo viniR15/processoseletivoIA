@@ -6,8 +6,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_YAML = SCRIPT_DIR / "dataset" / "data.yaml"
 OUTPUT_MODEL = SCRIPT_DIR / "model.pt"
 
-EPOCHS = 20
-IMGSZ = 416
+EPOCHS = 15
+IMGSZ = 640
 BATCH = 16
 
 def main():
