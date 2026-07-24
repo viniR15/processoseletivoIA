@@ -49,16 +49,16 @@ AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
 Loading /workspace/processoseletivoIA/projetos/3-deteccao-mascaras/model.tflite for TensorFlow Lite inference...
 INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss105.jpg                          6  [6x with_mask]
+maksssksksss105.jpg                          9  [9x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss107.jpg                          0  [nenhuma detecção]
+maksssksksss107.jpg                          1  [1x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
-maksssksksss11.jpg                          19  [19x with_mask]
+maksssksksss11.jpg                          23  [22x with_mask, 1x mask_weared_incorrect]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
 maksssksksss113.jpg                          4  [4x with_mask]
 Results saved to [1m/workspace/processoseletivoIA/projetos/3-deteccao-mascaras/runs/detect/inferencia_exemplos/predicoes[0m
 maksssksksss12.jpg                          12  [11x with_mask, 1x without_mask]
 ----------------------------------------------------------------------
-TOTAL                                       41
+TOTAL                                       49
 
 Imagens anotadas salvas em: runs/detect/inferencia_exemplos/predicoes/

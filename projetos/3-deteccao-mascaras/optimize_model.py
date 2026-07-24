@@ -19,7 +19,7 @@ def size_mb(path):
 
 
 def report(original_size, optimized_size):
-    print(f"\nTFLite INT8 salvo em: {OUTPUT_TFLITE}")
+    print(f"\nTFLite FP32 salvo em: {OUTPUT_TFLITE}")
     print(f"model.pt      : {original_size:.2f} MB")
     print(f"model.tflite  : {optimized_size:.2f} MB")
     print(f"Redução       : {(1 - optimized_size / original_size) * 100:.1f}%")
@@ -45,8 +45,7 @@ def try_export():
     exported = model.export(
         format="tflite",
         imgsz=IMGSZ,
-        int8=True,
-        data=str(DATA_YAML),
+        int8=False,
     )
     tflite_path = Path(exported) if exported and Path(exported).is_file() and Path(exported).suffix == ".tflite" else find_exported_tflite()
     if tflite_path is None:
@@ -66,7 +65,7 @@ def main():
         report(original_size, size_mb(OUTPUT_TFLITE))
         return
 
-    print("Executando pipeline de exportação (PyTorch → ONNX → SavedModel → TFLite INT8)...")
+    print("Executando pipeline de exportação (PyTorch → ONNX → SavedModel → TFLite FP32)...")
     try:
         try_export()
         report(original_size, size_mb(OUTPUT_TFLITE))
