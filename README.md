@@ -1,191 +1,106 @@
-# Processo Seletivo – Intensivo Maker | AI
+## 📝 Relatório do Candidato
 
-Bem-vindo(a) à **etapa prática do processo seletivo para o Intensivo Maker**.
+**Nome Completo:** Vinicius Reis de Lemos
 
-Esta atividade tem como objetivo avaliar competências técnicas relacionadas a **Machine Learning**, **Visão Computacional** e **Otimização de modelos para sistemas embarcados (Edge AI)**, a partir da aplicação prática dos conhecimentos adquiridos nos cursos EAD da etapa anterior.
+**GitHub:** https://github.com/viniR15/
 
-> 🎯 **Importante**
-> O foco deste desafio é avaliar sua capacidade de **projetar, treinar e otimizar um modelo de IA** — e de **entregar corretamente** os artefatos gerados.
+### 1️⃣ Resumo da Abordagem
 
----
+Fine-tuning do **YOLO11n** pré-treinado sobre o dataset de detecção de máscaras. Hiperparâmetros:
 
-## 📌 Navegação Rápida
+- **Épocas:** 15 (dentro da faixa recomendada de 15-30 pelo README)
+- **Tamanho de imagem:** 640x640 (padrão YOLO, alinhado com a validação automática do pipeline de correção)
+- **Batch size:** 16
+- **Device:** CPU (AMD EPYC 4564P)
+- **Optimizer:** AdamW selecionado automaticamente pela Ultralytics (`optimizer=auto`), com `lr=0.001429` e `momentum=0.9`
 
-- 🏁 [Passo 0 – Antes de Tudo](#-passo-0-antes-de-tudo)
-- ⚙ [Passo 1 – Preparando o Ambiente](#-passo-1-preparando-o-ambiente)
-- 🧭 [Passo 2 – Escolha do Projeto](#-passo-2-escolha-do-projeto)
-- 📤 [Passo 3 – Instruções de Entrega](#-passo-3-instruções-de-entrega)
-- ⚠️ [Restrições Gerais de Engenharia](#️-restrições-gerais-de-engenharia)
-- 🆘 [Suporte](#-suporte)
+Não foram aplicados ajustes específicos para o desbalanceamento de classes. O objetivo é demonstrar o pipeline completo (fine-tuning → validação → exportação → inferência), e o efeito do desbalanceamento aparece de forma clara nos resultados da seção 4.
 
----
+### 2️⃣ Bibliotecas Utilizadas
 
-## 🏁 Passo 0: Antes de Tudo
+- **Python:** 3.10.18
+- **ultralytics:** 8.3.155
+- **torch:** 2.4.1 (CPU)
+- **tensorflow:** 2.17.0
+- **onnx:** 1.16.2
+- **onnx2tf:** 1.28.8
+- **onnxslim:** 0.1.94
 
-Caso você **nunca tenha utilizado Git ou GitHub**, não se preocupe. Siga atentamente as etapas abaixo.
+### 3️⃣ Técnica de Otimização do Modelo
 
-### 1️⃣ Criação de Conta no GitHub
+Pipeline de exportação executado em `optimize_model.py`:
 
-1. Acesse: https://github.com
-2. Clique em **Sign up**
-3. Crie sua conta gratuita seguindo as instruções da plataforma
+1. **PyTorch → ONNX** (opset 19, via `torch.onnx.export`)
+2. **ONNX slimming** com **onnxslim 0.1.94** — otimização de grafo por eliminação de subexpressões comuns, constant folding e fusão de operações, reduzindo o número de nós antes da conversão
+3. **ONNX → TensorFlow SavedModel** (via onnx2tf, gerando `model_saved_model/`)
+4. **SavedModel → TFLite FP32** (via TFLiteConverter, formato final entregue como `model.tflite`)
 
-(*O GitHub será utilizado para envio, versionamento e correção automática do seu projeto.*)
+**Sobre a quantização INT8:** a implementação inicial usava **Post-Training Integer Quantization (INT8)** via `tf.lite.Optimize.DEFAULT` com representative dataset calibrado em 170 imagens do split de validação (via `int8=True` + `data=dataset/data.yaml`). O artefato quantizado gerado (2.81 MB) passou nos testes locais de inferência com detecções coerentes, mas foi descartado após a validação automática do CI acusar queda de mAP50 para ~0.02. Ver seção 5 para o diagnóstico completo — a decisão de manter o FP32 foi consciente e priorizou correção sobre compressão.
 
-### 2️⃣ Instalação do Git
+### 4️⃣ Resultados Obtidos
 
-O **Git** é a ferramenta que permite versionar e enviar seu código para o GitHub.
+**Métricas de validação (mAP no split val, 170 imagens, 726 instâncias):**
 
-- **Windows** — Baixe e instale o **Git Bash**: https://git-scm.com/downloads
-- **Linux / macOS** — Verifique se o Git já está instalado:
-  ```bash
-  git --version
-  ```
+| Classe                | Imagens | Instâncias | Precision | Recall | mAP50 | mAP50-95 |
+| --------------------- | :-----: | :--------: | :-------: | :----: | :---: | :------: |
+| **Todas**             |   170   |    726     |   0.760   | 0.703  | **0.722** | **0.504** |
+| with_mask             |   149   |    593     |   0.871   | 0.943  | 0.959 |  0.674   |
+| without_mask          |    57   |    114     |   0.787   | 0.693  | 0.771 |  0.518   |
+| mask_weared_incorrect |    15   |     19     |   0.621   | 0.474  | 0.435 |  0.320   |
 
----
+**Tamanhos dos artefatos:**
 
-## ⚙ Passo 1: Preparando o Ambiente
+| Arquivo        | Tamanho  | Formato                          |
+| -------------- | :------: | -------------------------------- |
+| `model.pt`     |  5.20 MB | PyTorch fine-tuned               |
+| `model.tflite` | 10.17 MB | TFLite FP32 (com grafo slimmed)  |
 
-Para desenvolver o desafio, você deverá criar uma cópia deste repositório.
+Observação sobre o tamanho: o `model.tflite` FP32 fica maior que o `.pt` original porque o formato PyTorch aplica compressão interna (share tensors, weight tying) que o TFLite não replica. A versão INT8 gerada durante o desenvolvimento tinha 2.81 MB (redução de ~46% vs `.pt`), mas foi descartada pelo motivo descrito na seção 5.
 
-### 1️⃣ Fork do Repositório
+### 5️⃣ Comentários Adicionais
 
-No canto superior direito desta página, clique em **Fork**. Uma cópia deste repositório será criada no **seu perfil do GitHub**.
-(*O Fork permite que você trabalhe de forma independente sem alterar o repositório original.*)
+- **Decisão INT8 → FP32 e o diagnóstico de incompatibilidade de backend.** A abordagem inicial de exportação foi Post-Training Integer Quantization (INT8) via `tf.lite.Optimize.DEFAULT`, com representative dataset amostrado do conjunto de validação. O `.tflite` INT8 (2.81 MB, redução ~46%) passou nos testes locais de inferência com detecções coerentes. Porém, quando validado pelo CI do repositório, o mAP50 caiu de 0.722 (no `.pt`) para 0.020 no `.tflite` INT8. O diagnóstico: o CI carrega o `.tflite` usando o backend **LiteRT** (`ai-edge-litert`, novo runtime do Ultralytics 8.4.x), enquanto o export foi feito pelo pipeline **onnx2tf → TensorFlow TFLite** (Ultralytics 8.3.x). A quantização INT8 gerada por esse pipeline usa layout NHWC com escalas por-canal que o LiteRT interpreta de forma diferente do runtime clássico do TFLite, resultando em detecções sistematicamente fora do lugar. A alternativa de exportar direto pelo LiteRT (Ultralytics 8.4.x) tem regressão conhecida no torch (falha no import de `torch._functorch._aot_autograd.utils`) que não foi possível contornar. Decisão consciente: entregar FP32 (10.17 MB), garantindo consistência de leitura entre backends e mAP alinhado com o do `.pt`. Trade-off: perde-se a compressão da quantização, mantém-se a correção do modelo.
 
-### 2️⃣ Clone do Repositório
+- **Desbalanceamento severo confirmado nos resultados.** A classe `mask_weared_incorrect` tem apenas 19 instâncias na validação (~2.6% do total) e obteve mAP50 = 0.435, contra 0.959 da classe majoritária `with_mask`. A classe intermediária `without_mask` (114 instâncias, ~15.7%) ficou num meio-termo (mAP50 = 0.771), reforçando a correlação direta entre volume de dados e desempenho.
 
-No repositório do **seu Fork**, clique em **<> Code**, copie a URL e execute:
+- **Optimizer automático.** A Ultralytics selecionou AdamW com lr=0.001429 via seu heurístico `optimizer=auto`, sobrepondo os defaults `lr0=0.01` e `momentum=0.937`. Essa é a configuração aplicada de fato no treino.
 
-```bash
-git clone https://github.com/SEU_USUARIO/nome-do-repositorio.git
-cd nome-do-repositorio
+- **Filtro defensivo de confidence na inferência.** O modelo TFLite carregado via `YOLO(...task="detect")` na Ultralytics 8.3.155 nem sempre respeita o parâmetro `conf` passado ao `predict()`, retornando as ~300 âncoras raw. O `run_inference.py` aplica um filtro adicional por confidence (`>= 0.25`) sobre `result.boxes` após a inferência, garantindo que a contagem impressa reflita detecções significativas.
+
+- **Tempo total do pipeline:** ~19 min de treino + ~10 s de exportação FP32.
+
+### 6️⃣ Exemplo de Inferência
+
+Saída do terminal ao rodar `run_inference.py` (com `imgsz=640` e filtro de confidence `>= 0.25`):
+
+```
+============================================================
+Projeto 3 — Inferência com model.tflite (Edge AI)
+============================================================
+
+Rodando inferência em 5 amostras usando model.tflite:
+
+Imagem                               Detecções  Detalhes
+----------------------------------------------------------------------
+maksssksksss105.jpg                          9  [9x with_mask]
+maksssksksss107.jpg                          1  [1x with_mask]
+maksssksksss11.jpg                          23  [22x with_mask, 1x mask_weared_incorrect]
+maksssksksss113.jpg                          4  [4x with_mask]
+maksssksksss12.jpg                          12  [11x with_mask, 1x without_mask]
+----------------------------------------------------------------------
+TOTAL                                       49
 ```
 
-### 3️⃣ Preparação do Ambiente de Execução
+**Observações:**
 
-Você pode executar o projeto de **três formas**. Escolha apenas uma.
+- **maksssksksss105.jpg (9 detecções, todas `with_mask`)** — sala de aula com crianças usando máscaras corretamente. As 9 detecções são coerentes com a cena, boa performance da classe majoritária em condições favoráveis.
 
-#### Opção A – Ambiente Python Local
-Requisitos: Python **3.10 ou 3.11** e pip.
+- **maksssksksss107.jpg (1 detecção)** — imagem tipo selfie com um único rosto grande, máscara claramente visível. Comparação relevante: a versão INT8 gerou 0 detecções nessa imagem, enquanto a FP32 detectou corretamente. Isso é coerente com o comportamento esperado da quantização: precisão reduzida penaliza mais amostras fora da distribuição típica de treino (rostos muito grandes e centralizados são sub-representados no dataset, dominado por cenas de multidão).
 
-As dependências ficam dentro da pasta do projeto escolhido (veja Passo 2), então instale-as **depois** de escolher seu projeto:
+- **maksssksksss11.jpg (23 detecções, incluindo 1 `mask_weared_incorrect`)** — cena de multidão com muitos rostos pequenos. O modelo detectou uma instância da classe minoritária, indicando que aprendeu algum sinal útil mesmo com pouquíssimos exemplos de treino. Novamente, a versão FP32 detectou essa instância enquanto a INT8 não — a quantização degrada primeiro as classes menos representadas.
 
-```bash
-cd projetos/<pasta-do-projeto-escolhido>
-pip install -r requirements.txt
-```
+- **maksssksksss113.jpg (4 detecções, todas `with_mask`)** — cena de aeroporto. 4 rostos com máscara detectados coerentemente.
 
-#### Opção B – Dev Container
-Este repositório inclui um **Dev Container** para facilitar a criação de um ambiente Python padronizado.
+- **maksssksksss12.jpg (12 detecções)** — cena de rua com pessoas caminhando com bagagens. 11 `with_mask` e 1 `without_mask` — detecção mista consistente com a cena.
 
-**Requisitos:** VS Code, Docker instalado, extensão **Dev Containers**.
-
-**Passos:** abra o repositório no VS Code → **"Reopen in Container"** → aguarde a criação automática do ambiente.
-
-#### Opção C – via browser (GitHub Codespaces)
-1. Clique em **<> Code**
-2. Clique em **Codespaces**
-3. Clique em **Create codespace on main**
-
-> Será aberta uma instância do VS Code no seu navegador com o container configurado.
-
----
-
-## 🧭 Passo 2: Escolha do Projeto
-
-Este desafio oferece **três opções de projeto**, todas em Visão Computacional e com **níveis de dificuldade equivalentes**. Você deve escolher **apenas uma**.
-
-| # | Projeto | Tarefa | Dataset |
-|---|---------|--------|---------|
-| 1 | [Classificação MNIST](projetos/1-classificacao-mnist/README.md) | Classificação de dígitos manuscritos (0-9) | `tf.keras.datasets.mnist` |
-| 2 | [Classificação CIFAR-10](projetos/2-classificacao-cifar/README.md) | Classificação de imagens coloridas (10 categorias de objetos/animais) | `tf.keras.datasets.cifar10` |
-| 3 | [Detecção de Máscaras Faciais](projetos/3-deteccao-mascaras/README.md) | Detecção de objetos: localizar rostos e classificar uso de máscara (fine-tuning de YOLO) | Face Mask Detection (Kaggle, CC0) — já incluso no repositório |
-
-Clique no link do projeto escolhido para ver as instruções técnicas completas e o template do relatório.
-
-### ⚠️ Depois de escolher, você DEVE:
-
-1. Trabalhar **apenas** dentro da pasta do projeto escolhido (`projetos/N-nome-do-projeto/`).
-2. **Apagar as pastas dos outros dois projetos** dentro de `projetos/` antes do commit final.
-3. Manter os nomes de arquivos e a estrutura interna da pasta do projeto **sem alterações**.
-
-> 🤖 **Por quê apagar as outras pastas?**
-> A correção automática (GitHub Actions) identifica qual projeto você escolheu verificando qual pasta restou dentro de `projetos/`. Se mais de uma pasta permanecer (ou nenhuma), a validação falha automaticamente com uma mensagem explicando o problema.
-
----
-
-## 📤 Passo 3: Instruções de Entrega
-
-### ✔️ Antes de enviar
-
-Dentro da pasta do seu projeto, execute os scripts e confirme que os arquivos foram gerados:
-
-```bash
-cd projetos/<pasta-do-projeto-escolhido>
-python train_model.py       # deve gerar model.h5 (Projetos 1 e 2) ou model.pt (Projeto 3)
-python optimize_model.py    # deve gerar model.tflite
-```
-
-> ⚠️ **Importante:** a correção automática **não treina nada por você**. Ela valida os artefatos que **você gerou localmente e enviou (commitou) para o repositório**. Se esses arquivos não estiverem no seu commit, a validação falha.
-
-### ⬆️ Envio do Código
-
-```bash
-git add .
-git commit -m "Entrega do desafio técnico - Seu Nome"
-git push origin main
-```
-
-### 🔍 Verificação Automática
-
-1. Acesse a aba **Actions** no GitHub do seu Fork
-2. Verifique se o workflow foi executado com sucesso (✅)
-3. Em caso de erro (❌), consulte os logs, corrija e envie novamente
-
-### 📎 Submissão Final
-
-Copie o link do seu repositório e envie conforme orientações do processo seletivo no Moodle.
-
----
-
-## ⚠️ Restrições Gerais de Engenharia
-
-Válidas para os três projetos (detalhes específicos estão no README de cada um):
-
-- Treinamento apenas em **CPU**
-- Sem uso de modelos pré-treinados — **exceto no Projeto 3**, onde o fine-tuning
-  de um modelo pré-treinado (YOLO11n) é intencional e faz parte do desafio
-- Número de épocas limitado (compatível com execução rápida — exceto o Projeto 3,
-  que naturalmente leva mais tempo por envolver fine-tuning de um detector)
-- Código deve executar do início ao fim **sem intervenção manual**
-- Os artefatos do modelo treinado e do modelo otimizado (`model.h5`/`model.pt` e
-  `model.tflite`, dependendo do projeto) **devem ser gerados localmente e
-  enviados (commitados) junto com o código** — a correção automática apenas os
-  valida, não os gera
-
-> **Importante:** o objetivo não é obter a maior acurácia possível, mas sim demonstrar **engenharia eficiente** e a capacidade de entregar um pipeline completo e reprodutível.
-
----
-
-## 📚 Material de Apoio
-
-Os cursos realizados na etapa anterior **devem ser utilizados como referência**:
-
-- 📘 Fundamentos de Inteligência Artificial para Sistemas Embarcados
-- 👁️ Sistemas de Visão Computacional Embarcada
-- ⚙️ Otimização de Modelos em Sistemas Embarcados
-
----
-
-## 🆘 Suporte
-
-Em caso de dúvidas:
-
-- Consulte o material dos cursos EAD
-- Leia atentamente este README e o README do projeto escolhido
-- Analise os logs das GitHub Actions
-- Utilize os canais oficiais para contato com os instrutores
-
-Boa sorte no processo seletivo.
-****
+**Distribuição agregada das 49 detecções:** 47 `with_mask` (~95.9%), 1 `without_mask` (~2%), 1 `mask_weared_incorrect` (~2%). A distribuição reflete o desbalanceamento herdado do dataset de treino, mas o modelo demonstra capacidade de detectar as três classes.
