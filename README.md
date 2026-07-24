@@ -1,4 +1,4 @@
-## 📝 Relatório do Candidato
+## Relatório do Candidato
 
 **Nome Completo:** Vinicius Reis de Lemos
 
