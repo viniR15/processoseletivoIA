@@ -1,6 +1,7 @@
 ## 📝 Relatório do Candidato
 
-👤 **Nome Completo:** Vinicius Reis de Lemos
+**Nome Completo:** Vinicius Reis de Lemos
+**GitHub:** https://github.com/viniR15/
 
 ### 1️⃣ Resumo da Abordagem
 
